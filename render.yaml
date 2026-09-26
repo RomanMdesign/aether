@@ -1,4 +1,4 @@
-# Render Blueprint — https://dashboard.render.com/blueprints
+# Render Blueprint
 
 databases:
   - name: aether-db
@@ -7,7 +7,6 @@ databases:
     user: aether
 
 services:
-  # API + WebSocket (Socket.IO)
   - type: web
     name: aether-api
     runtime: node
@@ -37,13 +36,11 @@ services:
       - key: OPENAI_MODEL
         value: gpt-4o-mini
 
-  # React static frontend (no plan — static sites are free)
   - type: web
     name: aether-web
     runtime: static
-    rootDir: client
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    buildCommand: npm install --prefix client && npm run build --prefix client
+    staticPublishPath: client/dist
     routes:
       - type: rewrite
         source: /*
