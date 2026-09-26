@@ -1,5 +1,4 @@
 # Render Blueprint — https://dashboard.render.com/blueprints
-# After connecting this repo, create from Blueprint or set services manually.
 
 databases:
   - name: aether-db
@@ -30,7 +29,6 @@ services:
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: CLIENT_URL
-        # Set this AFTER frontend deploys, e.g. https://aether-web.onrender.com
         sync: false
       - key: OPENAI_API_KEY
         sync: false
@@ -39,11 +37,10 @@ services:
       - key: OPENAI_MODEL
         value: gpt-4o-mini
 
-  # React static frontend
+  # React static frontend (no plan — static sites are free)
   - type: web
     name: aether-web
     runtime: static
-    plan: free
     rootDir: client
     buildCommand: npm install && npm run build
     staticPublishPath: dist
@@ -53,8 +50,6 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        # Set to API URL, e.g. https://aether-api.onrender.com
         sync: false
       - key: VITE_WS_URL
-        # Same as API URL for Socket.IO
         sync: false
