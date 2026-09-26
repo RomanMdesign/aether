@@ -10,8 +10,17 @@ import { registerWebRtc } from "./webrtc.js";
 export let io: Server;
 
 export function initSocket(server: HttpServer) {
+  const allowedOrigins = [
+    config.clientUrl,
+    ...(process.env.CLIENT_URLS || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+  ];
+
   io = new Server(server, {
-    cors: { origin: config.clientUrl, credentials: true },
+    cors: { origin: allowedOrigins, credentials: true },
+    transports: ["websocket", "polling"],
   });
 
   io.use(async (socket, next) => {

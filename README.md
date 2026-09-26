@@ -11,7 +11,7 @@ Cinematic community platform — real-time chat, communities, WebRTC voice/video
 - **Database:** PostgreSQL
 - **Realtime:** WebSocket (chat, presence) + WebRTC signaling (voice/video mesh)
 
-## Quick start
+## Quick start (local)
 
 ### Requirements
 
@@ -21,21 +21,13 @@ Cinematic community platform — real-time chat, communities, WebRTC voice/video
 ### Setup
 
 ```bash
-# Start Postgres
 docker compose up -d
-
-# Install dependencies
 npm install
-
-# Configure env
 cp .env.example server/.env
 # Edit server/.env — set JWT_SECRET at minimum
 
-# Database
 npm run db:push
 npm run db:seed
-
-# Run API + client
 npm run dev
 ```
 
@@ -48,6 +40,59 @@ npm run dev
 |-------|----------|
 | alice@aether.local | password123 |
 | bob@aether.local | password123 |
+
+## Deploy on Render
+
+This repo includes `render.yaml` for a Blueprint deploy.
+
+### One-time steps
+
+1. Go to [https://dashboard.render.com](https://dashboard.render.com) and sign in.
+2. **New → Blueprint** → connect the GitHub repo **RomanMdesign/aether**.
+3. Apply the Blueprint (creates Postgres + `aether-api` + `aether-web`).
+4. After the first deploy, open each service and set env vars:
+
+**aether-api**
+
+| Key | Value |
+|-----|--------|
+| `CLIENT_URL` | `https://<aether-web-service>.onrender.com` |
+| `OPENAI_API_KEY` | (optional) your OpenAI key |
+
+**aether-web** (build-time env)
+
+| Key | Value |
+|-----|--------|
+| `VITE_API_URL` | `https://<aether-api-service>.onrender.com` |
+| `VITE_WS_URL` | `https://<aether-api-service>.onrender.com` |
+
+5. **Manual Deploy** both services after setting env vars (frontend must rebuild with `VITE_*`).
+6. (Optional) Seed demo users — from your machine:
+
+```bash
+export DATABASE_URL="postgresql://...from Render dashboard..."
+cd server && npm install && npm run db:seed
+```
+
+### Manual setup (without Blueprint)
+
+1. **New → PostgreSQL** → copy Internal Database URL.
+2. **New → Web Service** from this repo  
+   - Root directory: `server`  
+   - Build: `npm install && npx prisma generate && npx prisma db push && npm run build`  
+   - Start: `npm run start`  
+   - Health check path: `/api/health`
+3. **New → Static Site** from this repo  
+   - Root directory: `client`  
+   - Build: `npm install && npm run build`  
+   - Publish: `dist`  
+   - Add rewrite: `/*` → `/index.html`
+
+### Notes
+
+- Free web services **sleep** when idle; first load can be slow and WebSockets may reconnect.
+- For stable chat/voice, use a paid web plan.
+- Voice uses browser WebRTC; add a TURN server for strict networks.
 
 ## Features (foundation)
 
@@ -70,7 +115,7 @@ Demo tracks must be royalty-free / CC0.
 
 ## Environment
 
-See `.env.example`.
+See `.env.example` and `render.yaml`.
 
 ## License
 

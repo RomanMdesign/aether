@@ -15,8 +15,27 @@ export function createApp() {
   const app = express();
   fs.mkdirSync(config.uploadDir, { recursive: true });
 
+  // Render / reverse proxies
+  app.set("trust proxy", 1);
+
+  const allowedOrigins = [
+    config.clientUrl,
+    ...(process.env.CLIENT_URLS || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+  ];
+
   app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-  app.use(cors({ origin: config.clientUrl, credentials: true }));
+  app.use(
+    cors({
+      origin(origin, cb) {
+        if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+        return cb(new Error(`CORS blocked for origin: ${origin}`));
+      },
+      credentials: true,
+    })
+  );
   app.use(express.json({ limit: "1mb" }));
   app.use("/uploads", express.static(path.resolve(config.uploadDir)));
 
